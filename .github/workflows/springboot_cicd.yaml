@@ -15,7 +15,7 @@ jobs:
       uses: actions/checkout@v3
     - name: Move Java code
       run: |
-        mv build_sample/app/* ./
+        mv ./* ./
     - name: Setup Java Build Environment
       uses: actions/setup-java@v3
       with:
