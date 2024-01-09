@@ -1,0 +1,61 @@
+name: CI/CD Java Project # Build Java Project -> Push DockerHub -> Deploy EC2
+on:
+  push:
+    branches: 'main'
+    #tags: 'v*'
+
+env:
+    DOCKER_IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.PROJECT_NAME }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Move Java code
+      run: |
+        mv build_sample/app/* ./
+    - name: Setup Java Build Environment
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    - name: Validate Gradle wrapper
+      uses: gradle/wrapper-validation-action@v1
+    - name: Setup Gradle
+      uses: gradle/gradle-build-action@v2
+      with:
+        gradle-version: '8.3'
+    - name: Build with Gradle
+      run: ./gradlew build
+    # 도커 허브 로그인
+    - name: DockerHub Login
+      uses: docker/login-action@v1
+      with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+    # 도커이미지 빌드하고 허브에 업로드
+    - name: Container Build and Push to DockerHub
+      uses: docker/build-push-action@v2
+      with:
+          context: ./
+          file: ./Dockerfile
+          push: true
+          tags: ${{ env.DOCKER_IMAGE_NAME }}
+  # EC2에 배포
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Deploy 
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.REMOTE_IP }}
+        username: ${{ secrets.REMOTE_SSH_ID }}
+        key: ${{ secrets.REMOTE_SSH_KEY }}
+        port: ${{ secrets.REMOTE_SSH_PORT }}
+        script: |
+          sudo docker rm -f $(sudo docker ps |grep ${{ env.DOCKER_IMAGE_NAME }} |awk '{print $1}')
+          sudo docker rmi -f $(sudo docker images |grep ${{ env.DOCKER_IMAGE_NAME }} |awk '{print $3}')
+          sudo docker run --name ${{ vars.PROJECT_NAME }} -d -p 80:8080 ${{ env.DOCKER_IMAGE_NAME }}:latest
