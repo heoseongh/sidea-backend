@@ -15,7 +15,7 @@ jobs:
     - name: Set env
       run: |
         BRANCH=$(echo $GITHUB_REF | cut -d'/' -f 3)
-        echo $BRANCH
+        echo "BRANCH=$BRANCH" >> $GITHUB_ENV
         echo DOCKER_IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.PROJECT_NAME }}-$BRANCH >> $GITHUB_ENV
 
     - name: ==== env print test =======
