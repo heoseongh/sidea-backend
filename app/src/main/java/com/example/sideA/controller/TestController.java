@@ -8,7 +8,6 @@ public class TestController {
 
     @GetMapping("/hello")
     public String Hello () {
-        String a = "1";
-        return "<h1>hello</h1>";
+        return "<h1>hello World</h1>";
     }
 }
