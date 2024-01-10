@@ -80,9 +80,9 @@ jobs:
     # 환경변수 설정
     - name: Set env
       run: |
-        BRANCH=$(echo $GITHUB_REF | cut -d'/' -f 3)
-        echo "BRANCH=$BRANCH" >> $GITHUB_ENV
-        echo DOCKER_IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.PROJECT_NAME }}-$BRANCH >> $GITHUB_ENV
+        SERVER_TYPE=$(echo $GITHUB_REF | cut -d'/' -f 3)
+        echo "DOCKER_IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.PROJECT_NAME }}-$SERVER_TYPE" >> $GITHUB_ENV
+        echo "DOCKER_CONTAINER_NAME=${{ secrets.PROJECT_NAME }}/-$SERVER_TYPE" >> $GITHUB_ENV
 
     # 운영 배포
     - name: Deploy to Real
@@ -96,7 +96,7 @@ jobs:
         port: ${{ secrets.REMOTE_SSH_PORT }}
         script: |
           sudo docker rm -f $(sudo docker ps -al |grep ${{ env.DOCKER_IMAGE_NAME }} |awk '{print $1}')
-          sudo docker run --name ${{ env.DOCKER_IMAGE_NAME }} -d -p 80:8080 ${{ env.DOCKER_IMAGE_NAME }}:latest
+          sudo docker run --name ${{ env.DOCKER_CONTAINER_NAME }} -d -p 80:8080 ${{ env.DOCKER_IMAGE_NAME }}:latest
           sudo docker image prune -f
 
     # 개발 배포
@@ -110,6 +110,6 @@ jobs:
         key: ${{ secrets.REMOTE_SSH_KEY }}
         port: ${{ secrets.REMOTE_SSH_PORT }}
         script: |
-          sudo docker rm -f $(sudo docker ps -al |grep ${{ env.DOCKER_IMAGE_NAME }} |awk '{print $1}')
-          sudo docker run --name ${{ env.DOCKER_IMAGE_NAME }} -d -p 80:8081 ${{ env.DOCKER_IMAGE_NAME }}:latest
+          sudo docker rm -f $(sudo docker ps -al |grep ${{ secrets.PROJECT_NAME }} |awk '{print $1}')
+          sudo docker run --name ${{ env.DOCKER_CONTAINER_NAME }} -d -p 80:8081 ${{ env.DOCKER_IMAGE_NAME }}:latest
           sudo docker image prune -f
