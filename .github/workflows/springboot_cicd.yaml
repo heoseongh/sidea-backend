@@ -82,7 +82,7 @@ jobs:
       run: |
         SERVER_TYPE=$(echo $GITHUB_REF | cut -d'/' -f 3)
         echo "DOCKER_IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.PROJECT_NAME }}-$SERVER_TYPE" >> $GITHUB_ENV
-        echo "DOCKER_CONTAINER_NAME=${{ secrets.PROJECT_NAME }}/-$SERVER_TYPE" >> $GITHUB_ENV
+        echo "DOCKER_CONTAINER_NAME=${{ secrets.PROJECT_NAME }}-$SERVER_TYPE" >> $GITHUB_ENV
 
     # 운영 배포
     - name: Deploy to Real
