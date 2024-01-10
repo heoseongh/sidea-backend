@@ -17,8 +17,10 @@ jobs:
         BRANCH=$(echo $GITHUB_REF | cut -d'/' -f 3)
         echo $BRANCH
         echo DOCKER_IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.PROJECT_NAME }}-$BRANCH >> $GITHUB_ENV
-        echo $DOCKER_IMAGE_NAME
 
+    - name: ==== env print test =======
+      run: echo ${{ env.BRANCH }}-${{ env.DOCKER_IMAGE_NAME }} 
+  
     - name: Checkout
       uses: actions/checkout@v3
 
