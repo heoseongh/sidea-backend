@@ -52,14 +52,7 @@ jobs:
       if: env.BRANCH == 'main'
       with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN_REAL }}
-    # 도커 허브 로그인 (dev)
-    - name: DockerHub Login
-      uses: docker/login-action@v1
-      if: env.BRANCH == 'dev'
-      with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN_DEV }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     # 도커이미지(Real) 빌드하고 허브에 업로드
     - name: Container Build and Push to DockerHub
