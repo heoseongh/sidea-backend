@@ -12,11 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - name: Set env BRANCH
+    - name: Set env
       run: |
-        echo BRANCH=$(echo $GITHUB_REF | cut -d'/' -f 3) >> $GITHUB_ENV
+        BRANCH=$(echo $GITHUB_REF | cut -d'/' -f 3)
         echo $BRANCH
-        DOCKER_IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.PROJECT_NAME }}-${{ env.BRANCH }} >> $GITHUB_ENV
+        echo DOCKER_IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.PROJECT_NAME }}-$BRANCH >> $GITHUB_ENV
         echo $DOCKER_IMAGE_NAME
 
     - name: Checkout
@@ -49,16 +49,25 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew build
 
-    # 도커 허브 로그인
+    # 도커 허브 로그인 (real)
     - name: DockerHub Login
       uses: docker/login-action@v1
+      if: env.BRANCH == 'main'
       with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          password: ${{ secrets.DOCKERHUB_TOKEN_REAL }}
+    # 도커 허브 로그인 (dev)
+    - name: DockerHub Login
+      uses: docker/login-action@v1
+      if: env.BRANCH == 'dev'
+      with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN_DEV }}
 
     # 도커이미지(Real) 빌드하고 허브에 업로드
     - name: Container Build and Push to DockerHub
       uses: docker/build-push-action@v2
+      if: ${{ success() }}
       with:
           context: ./
           file: ./Dockerfile
