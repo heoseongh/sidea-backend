@@ -15,7 +15,7 @@ jobs:
     - name: Set env BRANCH
       run: |
         echo "BRANCH=$(echo $GITHUB_REF | cut -d'/' -f 3)" >> $GITHUB_ENV
-        echo DOCKER_IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.PROJECT_NAME }}-$BRANCH
+        echo DOCKER_IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.PROJECT_NAME }}-${{ env.BRANCH }}
 
     - name: Checkout
       uses: actions/checkout@v3
@@ -56,7 +56,6 @@ jobs:
 
     # 도커이미지(Real) 빌드하고 허브에 업로드
     - name: Container Build and Push to DockerHub
-      if: contains(github.ref, 'main')
       uses: docker/build-push-action@v2
       with:
           context: ./
