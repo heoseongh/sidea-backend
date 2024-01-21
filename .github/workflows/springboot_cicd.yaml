@@ -12,10 +12,10 @@ jobs:
     # 환경변수 설정
     - name: Set env
       run: |
-        BRANCH=$(echo $GITHUB_REF | cut -d'/' -f 3)
+        BRANCH=$(git rev-parse --abbrev-ref HEAD)
         echo "BRANCH=$BRANCH" >> $GITHUB_ENV
         echo DOCKER_IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.PROJECT_NAME }}-$BRANCH >> $GITHUB_ENV
-
+    
     - name: Checkout
       uses: actions/checkout@v3
 
@@ -23,11 +23,18 @@ jobs:
       run: |
         mv ./app/* ./
 
-    # 개발 배포시에는 8081 포트를 열도록 설정 추가
-    - name: modify server port for dev
-      if: contains(github.ref, 'dev')
+    # 프로퍼티스 파일 주입
+    - name: Injection Properties File
       run: |
-        echo 'server.port=8081' >> ./src/main/resources/application.properties
+        if [ "$BRANCH" == "dev" ]; then \
+          echo "Generating dev properties file..." \
+          echo '${{ secrets.PROPERTIES_DEV }}' > ./src/main/resources/application.properties \
+        elif [ "$BRANCH" == "main" ]; then \
+          echo "Generating real properties file..." \
+          echo '${{ secrets.PROPERTIES_REAL }}' > ./src/main/resources/application.properties \
+        else
+          echo "Unknown branch. No properties file generated."
+        fi
 
     - name: Setup Java Build Environment
       uses: actions/setup-java@v3
