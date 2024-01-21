@@ -12,7 +12,7 @@ jobs:
     # 환경변수 설정
     - name: Set env
       run: |
-        BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        BRANCH=$(echo $GITHUB_REF | cut -d'/' -f 3)
         echo "BRANCH=$BRANCH" >> $GITHUB_ENV
         echo DOCKER_IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.PROJECT_NAME }}-$BRANCH >> $GITHUB_ENV
     
