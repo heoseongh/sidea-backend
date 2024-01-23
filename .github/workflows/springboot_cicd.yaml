@@ -15,7 +15,7 @@ jobs:
         BRANCH=$(echo $GITHUB_REF | cut -d'/' -f 3)
         echo "BRANCH=$BRANCH" >> $GITHUB_ENV
         echo DOCKER_IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.PROJECT_NAME }}-$BRANCH >> $GITHUB_ENV
-
+    
     - name: Checkout
       uses: actions/checkout@v3
 
@@ -23,11 +23,18 @@ jobs:
       run: |
         mv ./app/* ./
 
-    # 개발 배포시에는 8081 포트를 열도록 설정 추가
-    - name: modify server port for dev
-      if: contains(github.ref, 'dev')
+    # 프로퍼티스 파일 주입
+    - name: Injection Properties File
       run: |
-        echo 'server.port=8081' >> ./src/main/resources/application.properties
+        if [ "$BRANCH" == "dev" ]; then \
+          echo "Generating dev properties file..."; \
+          echo "${{ secrets.PROPERTIES_DEV }}" > ./src/main/resources/application.properties; \
+        elif [ "$BRANCH" == "main" ]; then \
+          echo "Generating real properties file..."; \
+          echo "${{ secrets.PROPERTIES_REAL }}" > ./src/main/resources/application.properties; \
+        else \
+          echo "Unknown branch. No properties file generated.";
+        fi
 
     - name: Setup Java Build Environment
       uses: actions/setup-java@v3
@@ -95,9 +102,9 @@ jobs:
         key: ${{ secrets.REMOTE_SSH_KEY }}
         port: ${{ secrets.REMOTE_SSH_PORT }}
         script: |
-          sudo docker rm -f $(sudo docker ps -al |grep ${{ env.DOCKER_IMAGE_NAME }} |awk '{print $1}')
+          sudo docker rm -f $(sudo docker ps -a |grep ${{ env.DOCKER_IMAGE_NAME }} |awk '{print $1}')
           sudo docker pull ${{ env.DOCKER_IMAGE_NAME }}
-          sudo docker run --name ${{ env.DOCKER_CONTAINER_NAME }} -d -p 80:8080 ${{ env.DOCKER_IMAGE_NAME }}:latest
+          sudo docker run --name ${{ env.DOCKER_CONTAINER_NAME }} -d --rm --network real -p 8080:8080 ${{ env.DOCKER_IMAGE_NAME }}:latest
           sudo docker image prune -f
 
     # 개발 배포
@@ -111,7 +118,7 @@ jobs:
         key: ${{ secrets.REMOTE_SSH_KEY }}
         port: ${{ secrets.REMOTE_SSH_PORT }}
         script: |
-          sudo docker rm -f $(sudo docker ps -al |grep ${{ env.DOCKER_IMAGE_NAME }} |awk '{print $1}')
+          sudo docker rm -f $(sudo docker ps -a |grep ${{ env.DOCKER_CONTAINER_NAME }} |awk '{print $1}')
           sudo docker pull ${{ env.DOCKER_IMAGE_NAME }}
-          sudo docker run --name ${{ env.DOCKER_CONTAINER_NAME }} -d -p 80:8081 ${{ env.DOCKER_IMAGE_NAME }}:latest
+          sudo docker run --name ${{ env.DOCKER_CONTAINER_NAME }} -d --rm --network dev -p 8081:8080 ${{ env.DOCKER_IMAGE_NAME }}:latest
           sudo docker image prune -f
