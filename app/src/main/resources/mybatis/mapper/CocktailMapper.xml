@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.sideA.dao.CocktailDao">
+  <select id="getCocktailList" resultType="CocktailDto" parameterType="String">
+    SELECT
+    	*
+    FROM
+    	cocktail_recipe    
+  </select>
+  <select id="getCocktailDetailList" resultType="CocktailDto" parameterType="String">
+	  SELECT
+	  	*
+	  FROM
+	  	cocktail_recipe_detail
+	  WHERE
+	  	COCKTAIL_RECIPE_NUM = #{cockTailNum}
+	  
+  </select>
+</mapper>

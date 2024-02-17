@@ -3,5 +3,6 @@
 <configuration>
   <mappers>
     <mapper resource="TestMapper.xml"/>
-  </mappers>
+    <mapper resource="CocktailMapper.xml"/>
+  </mappers>   
 </configuration>
