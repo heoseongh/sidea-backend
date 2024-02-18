@@ -72,6 +72,23 @@ public class CocktailController {
     	
     	return new ResponseEntity<HashMap<String, Object>>(result, HttpStatus.OK);
     }
+    
+    @GetMapping("/cocktailCombination")
+    public ResponseEntity<HashMap<String, Object>> getCocktailCombination(@RequestBody List<CocktailDto> cocktailDto) {
+    	
+    	
+    	HashMap<String, Object> result = new HashMap<>();
+    	
+    	try {
+    		
+		} catch (Exception e) {
+			
+			e.printStackTrace();
+		
+		}
+    	
+    	return new ResponseEntity<HashMap<String, Object>>(result, HttpStatus.OK);
+    }
 
     
 }
